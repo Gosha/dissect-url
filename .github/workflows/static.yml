@@ -36,9 +36,10 @@ jobs:
         with:
           # The version of Node.js that will be used
           node-version: 22
-      - run: yarn build
       - name: Setup Pages
+        id: setup_pages
         uses: actions/configure-pages@v5
+      - run: yarn build --base=${{ steps.setup_pages.outputs.base_url }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
