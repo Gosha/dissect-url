@@ -5,7 +5,8 @@ import {
   dissectUrl,
   Json,
   JWT,
-  KeyValuePairs,
+  AndDelimited,
+  KeyValuePair,
   Part,
   Url,
   UrlEncoded,
@@ -69,6 +70,33 @@ const ShowJson: Component<{ data: Json }> = (props) => {
   )
 }
 
+const ShowPair: Component<{ data: KeyValuePair }> = (props) => {
+  return (
+    <div class="flex">
+      <div class="m-1 flex-shrink-0">
+        <ShowData data={props.data.key} />
+      </div>
+      <Static>=</Static>
+      <div class="m-1">
+        <ShowData data={props.data.value} />
+      </div>
+    </div>
+  )
+}
+
+const ShowArray: Component<{ data: AndDelimited }> = (props) => {
+  return (
+    <For each={props.data.contents}>
+      {(item, index) => (
+        <div class="flex">
+          <Static>{index() == 0 ? "?" : "&"}</Static>
+          <ShowData data={item} />
+        </div>
+      )}
+    </For>
+  )
+}
+
 const ShowJWT: Component<{ data: JWT }> = (props) => {
   return (
     <span class="font-mono">
@@ -111,7 +139,12 @@ const ShowData: Component<{ data: Data }> = ({ data }) => {
       return <ShowJson data={data} />
     case "jwt":
       return <ShowJWT data={data} />
+    case "pair":
+      return <ShowPair data={data} />
+    case "array":
+      return <ShowArray data={data} />
   }
+
   return <pre>{JSON.stringify(data)}</pre>
 }
 
@@ -146,30 +179,13 @@ const ShowUrl: Component<{ url: Url }> = (props) => {
         </For>
       </div>
 
-      <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
-        <Show when={isKeyValue(props.url.query?.data) && props.url.query?.data}>
-          {(data) => (
-            <For each={data().pairs}>
-              {(item, index) => (
-                <div class="flex">
-                  <Static>{index() == 0 ? "?" : "&"}</Static>
-                  <div class="m-1 shrink-0">
-                    <ShowData data={item.key} />
-                  </div>
-                  <Static>=</Static>
-                  <div class="m-1">
-                    <ShowData data={item.value} />
-                  </div>
-                </div>
-              )}
-            </For>
-          )}
-        </Show>
-      </div>
+      <Show when={props.url.query}>
+        {(query) => (
+          <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
+            <ShowPart part={query()} />
+          </div>
+        )}
+      </Show>
     </>
   )
-}
-
-function isKeyValue(data?: Data): data is KeyValuePairs {
-  return typeof data === "object" && data._type === "keyvalue"
 }

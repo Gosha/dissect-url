@@ -8,9 +8,9 @@ export interface Url {
 
 export type Protocol = string
 
-export type Primitive = string | KeyValuePairs
+export type Primitive = string | KeyValuePair
 export type Encoding = Base64UrlEncoded | UrlEncoded | Json | JWT
-export type Data = Primitive | Encoding
+export type Data = Primitive | Encoding | AndDelimited
 
 export interface Base64UrlEncoded {
   _type: "base64url"
@@ -46,14 +46,15 @@ export interface Part<Type extends string> {
 }
 
 export interface KeyValuePair {
+  _type: "pair"
   key: Data
-  value: Data
+  value: Primitive | Encoding
 }
 
-export type KeyValuePairs = {
-  _type: "keyvalue"
+export type AndDelimited = {
+  _type: "array"
   raw: string
-  pairs: KeyValuePair[]
+  contents: Data[]
 }
 
 export type HostPart = Part<"host">
@@ -101,10 +102,11 @@ const example1: Url = {
   query: {
     _type: "query",
     data: {
-      _type: "keyvalue",
+      _type: "array",
       raw: "query=ZXhhbXBsZQ",
-      pairs: [
+      contents: [
         {
+          _type: "pair",
           key: "query",
           value: { _type: "base64url", raw: "ZXhhbXBsZQ", data: "path" },
         },
@@ -137,17 +139,28 @@ function pathParts(path: string): PathPart[] {
 }
 
 function queryParts(query: string): QueryPart {
-  const pairs = query.split("&").map((pair) => {
-    const [key, value] = pair.split("=")
+  if (query.includes("&") || query.includes("=")) {
+    const pairs = query.split("&").map((pair) => {
+      if (pair.includes("=")) {
+        const [key, value] = pair.split("=")
+        return {
+          _type: "pair" as const,
+          key: identifyEncodings(allEncodings, key),
+          value: identifyEncodings(allEncodings, value),
+        }
+      }
+      return identifyEncodings(allEncodings, pair)
+    })
+
     return {
-      key: identifyEncodings(allEncodings, key),
-      value: identifyEncodings(allEncodings, value),
+      _type: "query",
+      data: { _type: "array", raw: query, contents: pairs },
     }
-  })
+  }
 
   return {
     _type: "query",
-    data: { _type: "keyvalue", raw: query, pairs },
+    data: identifyEncodings(allEncodings, query),
   }
 }
 
