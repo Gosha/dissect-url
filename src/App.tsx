@@ -14,7 +14,13 @@ const App: Component = () => {
           <h1 class="text-5xl m-5 font-thin">Dissect URL</h1>
           <ContentEditable
             class="text-left font-mono m-5 text-sm border-1 p-2"
-            style={{ "word-break": "break-all" }}
+            style={{
+              "word-break": "break-all",
+              ...{ // Workaround for missing CSS property
+                "text-wrap-mode": "wrap",
+              },
+            }}
+            singleline
             textContent={url()}
             onTextContent={setUrl}
           />
