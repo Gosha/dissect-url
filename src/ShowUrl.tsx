@@ -126,26 +126,26 @@ const ShowJWT: Component<{ data: JWT }> = (props) => {
   )
 }
 
-const ShowData: Component<{ data: Data }> = ({ data }) => {
-  if (typeof data === "string") {
-    return <span>{data}</span>
+const ShowData: Component<{ data: Data }> = (props) => {
+  if (typeof props.data === "string") {
+    return <span>{props.data}</span>
   }
-  switch (data._type) {
+  switch (props.data._type) {
     case "urlencoded":
-      return <ShowUrlEncoded data={data} />
+      return <ShowUrlEncoded data={props.data} />
     case "base64url":
-      return <ShowBase64Encoded data={data} />
+      return <ShowBase64Encoded data={props.data} />
     case "json":
-      return <ShowJson data={data} />
+      return <ShowJson data={props.data} />
     case "jwt":
-      return <ShowJWT data={data} />
+      return <ShowJWT data={props.data} />
     case "pair":
-      return <ShowPair data={data} />
+      return <ShowPair data={props.data} />
     case "array":
-      return <ShowArray data={data} />
+      return <ShowArray data={props.data} />
   }
 
-  return <pre>{JSON.stringify(data)}</pre>
+  return <pre>{JSON.stringify(props.data)}</pre>
 }
 
 const ShowUrl: Component<{ url: Url }> = (props) => {

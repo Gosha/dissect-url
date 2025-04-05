@@ -2,8 +2,8 @@ export interface Url {
   protocol: Protocol
   host: HostPart[]
   path: PathPart[]
-  query?: QueryPart
-  hash?: string
+  query: QueryPart
+  hash: string
 }
 
 export type Protocol = string
