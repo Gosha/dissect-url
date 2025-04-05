@@ -10,8 +10,8 @@ const App: Component = () => {
   return (
     <>
       <div class="h-full flex" style={{ "max-width": "100vw" }}>
-        <div class="m-auto">
-          <h1 class="text-5xl font-thin">Dissect URL</h1>
+        <div class="m-auto p-5">
+          <h1 class="text-5xl m-5 font-thin">Dissect URL</h1>
           <ContentEditable
             class="text-left font-mono m-5 text-sm border-1 p-2"
             style={{ "word-break": "break-all" }}
