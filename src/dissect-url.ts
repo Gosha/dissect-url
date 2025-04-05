@@ -213,28 +213,30 @@ function identifyJson(string: string): Json | undefined {
 }
 
 function identifyJWT(string: string): JWT | undefined {
-  // Check if the string is a valid JWT
-  const parts = string.split(".")
-  if (parts.length !== 3) return
+  try {
+    // Check if the string is a valid JWT
+    const parts = string.split(".")
+    if (parts.length !== 3) return
 
-  const [header, payload, signature] = parts
-  const decodedHeader = atob(header)
-  const decodedPayload = atob(payload)
+    const [header, payload, signature] = parts
+    const decodedHeader = atob(header)
+    const decodedPayload = atob(payload)
 
-  if (
-    printableCharacters(decodedHeader) &&
-    printableCharacters(decodedPayload)
-  ) {
-    return {
-      _type: "jwt",
-      raw: string,
-      data: {
-        header: JSON.parse(decodedHeader),
-        payload: JSON.parse(decodedPayload),
-        signature,
-      },
+    if (
+      printableCharacters(decodedHeader) &&
+      printableCharacters(decodedPayload)
+    ) {
+      return {
+        _type: "jwt",
+        raw: string,
+        data: {
+          header: JSON.parse(decodedHeader),
+          payload: JSON.parse(decodedPayload),
+          signature,
+        },
+      }
     }
-  }
+  } catch (e) {}
 }
 
 type Encoder = (string: string) => Encoding | undefined
