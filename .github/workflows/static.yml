@@ -36,6 +36,7 @@ jobs:
         with:
           # The version of Node.js that will be used
           node-version: 22
+      - run: yarn test
       - name: Setup Pages
         id: setup_pages
         uses: actions/configure-pages@v5
