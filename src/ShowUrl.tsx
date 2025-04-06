@@ -1,4 +1,4 @@
-import { Accessor, Component, For, JSX, Show } from "solid-js"
+import { Accessor, Component, createSignal, For, JSX, Show } from "solid-js"
 import {
   Base64UrlEncoded,
   Data,
@@ -16,18 +16,33 @@ import {
 export const DissectURL: Component<{ url: Accessor<string> }> = (props) => {
   const dissectedUrl = () => dissectUrl(props.url())
 
+  const [showDebug, setShowDebug] = createSignal(false)
+
   return (
     <div class="flex flex-col text-left m-5">
-      {/* <p class="text-xs mb-5" style={{ "word-break": "break-all" }}>
-        {props.url}
-      </p> */}
       <ShowUrl url={dissectedUrl()} />
-      {/* <pre
-        class="text-xs"
-        style={{ "text-wrap": "wrap", "word-break": "break-all" }}
+
+      <div
+        class="text-sm flex mt-5 cursor-pointer"
+        onClick={() => setShowDebug(!showDebug())}
       >
-        {JSON.stringify(dissectedUrl, null, 2)}
-      </pre> */}
+        <Show
+          when={showDebug()}
+          fallback={<div class="i-mdi-light:chevron-right  text-xl" />}
+        >
+          <div class="i-mdi-light:chevron-down  text-xl" />
+        </Show>
+
+        <div>Debug</div>
+      </div>
+      <Show when={showDebug()}>
+        <pre
+          class="text-xs ml-5"
+          style={{ "text-wrap": "wrap", "word-break": "break-all" }}
+        >
+          {JSON.stringify(dissectedUrl(), null, 2)}
+        </pre>
+      </Show>
     </div>
   )
 }
