@@ -162,18 +162,18 @@ const ShowJWT: Component<{ data: JWT }> = (props) => {
   )
 }
 
-function notString<T>(x: T): Exclude<T, string> | undefined {
-  if (typeof x !== "string") return x as Exclude<T, string>
-}
-
-function isOfType<T extends { _type: string }, K extends T["_type"]>(
-  x: T,
-  k: K
-): Extract<T, { _type: K }> | undefined {
-  if (x._type === k) return x as Extract<T, { _type: K }>
-}
-
 const ShowData: Component<{ data: Data }> = (props) => {
+  function notString<T>(x: T): Exclude<T, string> | undefined {
+    if (typeof x !== "string") return x as Exclude<T, string>
+  }
+
+  function isOfType<T extends { _type: string }, K extends T["_type"]>(
+    x: T,
+    k: K
+  ): Extract<T, { _type: K }> | undefined {
+    if (x._type === k) return x as Extract<T, { _type: K }>
+  }
+
   return (
     <Switch>
       <Match when={typeof props.data === "string"}>
