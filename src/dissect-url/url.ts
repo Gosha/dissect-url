@@ -1,4 +1,8 @@
-import { allEncodings, encodeRFC3986URIComponent, identifyEncodings } from "./encodings"
+import {
+  allEncodings,
+  encodeRFC3986URIComponent,
+  identifyEncodings,
+} from "./encodings"
 import { Data } from "./types"
 
 export type Protocol = string

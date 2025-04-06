@@ -1,17 +1,17 @@
-import { Data } from "./types"
-
-export type Encoding =
+export type AnyEncoding =
   | Json
   | JWT
   | UrlEncoded
   | RFC3986URIEncoded
   | Base64UrlEncoded
 
-export interface UrlEncoded {
-  _type: "urlencoded"
+export type Encoding<Type, Content = string> = {
+  _type: Type
   raw: string
-  data: Data
+  data: Content extends string ? Content | Encoding<any> : Content
 }
+
+export type UrlEncoded = Encoding<"urlencoded">
 
 export const allEncodings = [
   identifyBase64UrlEncoded,
@@ -32,13 +32,9 @@ function identifyUrlEncoded(string: string): UrlEncoded | undefined {
   }
 }
 
-export interface RFC3986URIEncoded {
-  _type: "rfc3986uri"
-  raw: string
-  data: Data
-}
+export type RFC3986URIEncoded = Encoding<"rfc3986uri">
 
-export function encodeRFC3986URIComponent(str: string) {
+export function encodeRFC3986URIComponent(str: string): string {
   return encodeURIComponent(str).replace(
     /[!'()*]/g,
     (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
@@ -59,11 +55,7 @@ function identifyRFC3986URIEncoded(
   }
 }
 
-export interface Base64UrlEncoded {
-  _type: "base64url"
-  raw: string
-  data: Data
-}
+export type Base64UrlEncoded = Encoding<"base64url">
 
 function printableCharacters(string: string): boolean {
   // Including foreign scripts
@@ -93,11 +85,7 @@ function identifyBase64UrlEncoded(
   }
 }
 
-export interface Json {
-  _type: "json"
-  raw: string
-  data: {}
-}
+export type Json = Encoding<"json", unknown>
 
 function identifyJson(string: string): Json | undefined {
   try {
@@ -113,15 +101,12 @@ function identifyJson(string: string): Json | undefined {
   }
 }
 
-export interface JWT {
-  _type: "jwt"
-  raw: string
-  data: {
-    header: {}
-    payload: {}
-    signature: string
-  }
+export interface JWTContent {
+  header: {}
+  payload: {}
+  signature: string
 }
+export type JWT = Encoding<"jwt", JWTContent>
 
 function identifyJWT(string: string): JWT | undefined {
   try {
@@ -150,12 +135,12 @@ function identifyJWT(string: string): JWT | undefined {
   } catch (e) {}
 }
 
-type Encoder = (string: string) => Encoding | undefined
+type Encoder = (string: string) => AnyEncoding | undefined
 
 export function identifyEncodings(
   encodings: Encoder[],
   string: string
-): Encoding | string {
+): AnyEncoding | string {
   for (const identify of encodings) {
     const result = identify(string)
     if (result) {
@@ -167,7 +152,7 @@ export function identifyEncodings(
         return {
           ...result,
           data: inner,
-        } as Encoding
+        } as AnyEncoding
     }
   }
 

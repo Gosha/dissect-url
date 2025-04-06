@@ -1,13 +1,13 @@
-import { Encoding } from "./encodings"
+import { AnyEncoding } from "./encodings"
 
 export type Primitive = string | KeyValuePair
 
-export type Data = Primitive | Encoding | AndDelimited
+export type Data = Primitive | AnyEncoding | AndDelimited
 
 export interface KeyValuePair {
   _type: "pair"
   key: Data
-  value: Primitive | Encoding
+  value: Primitive | AnyEncoding
 }
 
 export type AndDelimited = {
