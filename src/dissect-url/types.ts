@@ -13,5 +13,5 @@ export interface KeyValuePair {
 export type AndDelimited = {
   _type: "array"
   raw: string
-  contents: Data[]
+  contents: (Primitive | AnyEncoding)[]
 }
