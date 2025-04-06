@@ -44,7 +44,15 @@ export function encodeRFC3986URIComponent(str: string): string {
 function identifyRFC3986URIEncoded(
   string: string
 ): RFC3986URIEncoded | undefined {
-  // TODO:
+  if (
+    !"[!'()*]"
+      .split("")
+      .find((c) =>
+        string.includes(`%${c.charCodeAt(0).toString(16).toUpperCase()}`)
+      )
+  )
+    return
+
   const decoded = decodeURIComponent(string)
   if (decoded !== string) {
     return {

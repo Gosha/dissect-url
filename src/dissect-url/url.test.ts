@@ -2,6 +2,7 @@ import { suite } from "uvu"
 
 import * as assert from "uvu/assert"
 import { assembleUrl, dissectUrl, Url } from "./url"
+import { UrlEncoded } from "./encodings"
 
 const testDissect = suite("dissect-url")
 const testReassemble = suite("reassemble")
@@ -95,9 +96,37 @@ testReassemble("Reassemble spaced hash", () => {
 }
 
 {
+  const url = "https://example.com/Hello%20World"
+  testDissect("URL encoded", () => {
+    const encodedHelloWorld = {
+      _type: "urlencoded" as const,
+      raw: "Hello%20World",
+      data: "Hello World",
+    }
+    assert.equal(dissectUrl(url), {
+      protocol: "https",
+      host: [
+        { _type: "host", data: "example" },
+        { _type: "host", data: "com" },
+      ],
+      path: [
+        {
+          _type: "path",
+          data: encodedHelloWorld,
+        },
+      ],
+    } satisfies Url)
+  })
+
+  testReassemble("Reassemble URL encoded", () => {
+    assert.equal(assembleUrl(dissectUrl(url)), url)
+  })
+}
+
+{
   const url =
     "https://example.com/Hello%20World%20%21%3F%5B%5D?Hello%20World%20%21%3F%5B%5D=Hello%20World%20%21%3F%5B%5D"
-  testDissect("URL encoded", () => {
+  testDissect("RFC3986 URL encoded", () => {
     const encodedHelloWorld = {
       _type: "rfc3986uri" as const,
       raw: "Hello%20World%20%21%3F%5B%5D",
@@ -128,7 +157,7 @@ testReassemble("Reassemble spaced hash", () => {
     } satisfies Url)
   })
 
-  testReassemble("Reassemble URL encoded", () => {
+  testReassemble("Reassemble RFC3986 URL encoded", () => {
     assert.equal(assembleUrl(dissectUrl(url)), url)
   })
 }
@@ -136,16 +165,15 @@ testReassemble("Reassemble spaced hash", () => {
 {
   const url = "https://example.com/%2521%2520Hello%2520World"
   testDissect("Double URL encoded", () => {
-    const encodedHelloWorld = {
-      _type: "rfc3986uri" as const,
-      raw: "%21%20Hello%20World",
-      data: "! Hello World",
-    }
     const doubleEncodedHelloWorld = {
-      _type: "rfc3986uri" as const,
+      _type: "urlencoded",
       raw: "%2521%2520Hello%2520World",
-      data: encodedHelloWorld,
-    }
+      data: {
+        _type: "rfc3986uri",
+        raw: "%21%20Hello%20World",
+        data: "! Hello World",
+      },
+    } satisfies UrlEncoded
     assert.equal(dissectUrl(url), {
       protocol: "https",
       host: [
