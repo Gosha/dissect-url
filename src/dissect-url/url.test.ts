@@ -1,7 +1,7 @@
 import { suite } from "uvu"
 
 import * as assert from "uvu/assert"
-import { assembleUrl, dissectUrl, Url } from "./dissect-url"
+import { assembleUrl, dissectUrl, Url } from "./url"
 
 const testDissect = suite("dissect-url")
 const testReassemble = suite("reassemble")
