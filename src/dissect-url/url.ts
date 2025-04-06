@@ -1,8 +1,4 @@
-import {
-  allEncodings,
-  encodeRFC3986URIComponent,
-  identifyEncodings,
-} from "./encodings"
+import { encode, identifyEncodings } from "./encodings"
 import { Data } from "./types"
 
 export type Protocol = string
@@ -49,48 +45,29 @@ export function dissectUrl(url: string): Url {
   }
 }
 
-function base64URLencode(str: string): string {
-  const utf8Arr = new TextEncoder().encode(str)
-  const base64Encoded = btoa(utf8Arr as any as string)
-  return base64Encoded
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "")
-}
-
 export function assembleUrl(url: Url): string {
   const protocol = url.protocol + ":"
   const host = url.host.map((part) => part.data).join(".")
-  const path = url.path.map((part) => encode(part.data)).join("/")
-  const query = url.query !== undefined ? "?" + encode(url.query.data) : ""
-  const hash = url.hash !== undefined ? "#" + encode(url.hash) : ""
+  const path = url.path.map((part) => encodeAll(part.data)).join("/")
+  const query = url.query !== undefined ? "?" + encodeAll(url.query.data) : ""
+  const hash = url.hash !== undefined ? "#" + encodeAll(url.hash) : ""
 
   return `${protocol}//${host}/${path}${query}${hash}`
 }
 
-function encode(data: Data): string {
+function encodeAll(data: Data): string {
   if (typeof data === "string") return data
   switch (data._type) {
     case "urlencoded":
-      return encodeURIComponent(encode(data.data))
     case "rfc3986uri":
-      return encodeRFC3986URIComponent(encode(data.data))
     case "base64url":
-      return base64URLencode(encode(data.data))
     case "json":
-      return JSON.stringify(data.data)
     case "jwt":
-      return (
-        base64URLencode(JSON.stringify(data.data.header)) +
-        "." +
-        base64URLencode(JSON.stringify(data.data.payload)) +
-        "." +
-        data.data.signature
-      )
+      return encode(data)
     case "pair":
-      return `${encode(data.key)}=${encode(data.value)}`
+      return `${encodeAll(data.key)}=${encodeAll(data.value)}`
     case "array":
-      return data.contents.map(encode).join("&")
+      return data.contents.map(encodeAll).join("&")
   }
 }
 
@@ -143,7 +120,7 @@ function pathParts(path: string): PathPart[] {
   const parts = path.split("/").slice(1)
   return parts.map((part) => ({
     _type: "path",
-    data: identifyEncodings(allEncodings, part),
+    data: identifyEncodings(part),
   }))
 }
 
@@ -154,11 +131,11 @@ function queryParts(query: string): QueryPart {
         const [key, value] = pair.split("=")
         return {
           _type: "pair" as const,
-          key: identifyEncodings(allEncodings, key),
-          value: identifyEncodings(allEncodings, value),
+          key: identifyEncodings(key),
+          value: identifyEncodings(value),
         }
       }
-      return identifyEncodings(allEncodings, pair)
+      return identifyEncodings(pair)
     })
 
     return {
@@ -169,6 +146,6 @@ function queryParts(query: string): QueryPart {
 
   return {
     _type: "query",
-    data: identifyEncodings(allEncodings, query),
+    data: identifyEncodings(query),
   }
 }
