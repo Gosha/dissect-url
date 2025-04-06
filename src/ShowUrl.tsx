@@ -1,4 +1,13 @@
-import { Accessor, Component, createSignal, For, JSX, Show } from "solid-js"
+import {
+  Accessor,
+  Component,
+  createSignal,
+  For,
+  JSX,
+  Match,
+  Show,
+  Switch,
+} from "solid-js"
 import {
   Base64UrlEncoded,
   Data,
@@ -154,27 +163,51 @@ const ShowJWT: Component<{ data: JWT }> = (props) => {
 }
 
 const ShowData: Component<{ data: Data }> = (props) => {
-  if (typeof props.data === "string") {
-    return <span>{props.data}</span>
-  }
-  switch (props.data._type) {
-    case "urlencoded":
-      return <ShowUrlEncoded data={props.data} />
-    case "rfc3986uri":
-      return <ShowRFC3986IROEncoded data={props.data} />
-    case "base64url":
-      return <ShowBase64Encoded data={props.data} />
-    case "json":
-      return <ShowJson data={props.data} />
-    case "jwt":
-      return <ShowJWT data={props.data} />
-    case "pair":
-      return <ShowPair data={props.data} />
-    case "array":
-      return <ShowArray data={props.data} />
+  function getNonString<T>(x: T): Exclude<T, string> | undefined {
+    if (typeof x !== "string") return x as Exclude<T, string>
   }
 
-  return <pre>{JSON.stringify(props.data)}</pre>
+  function getWhenType<T extends { _type: string }, K extends T["_type"]>(
+    x: T,
+    k: K
+  ): Extract<T, { _type: K }> | undefined {
+    if (x._type === k) return x as Extract<T, { _type: K }>
+  }
+
+  return (
+    <Switch>
+      <Match when={typeof props.data === "string"}>
+        {<span>{props.data as string}</span>}
+      </Match>
+      <Match when={getNonString(props.data)}>
+        {(data) => (
+          <Switch fallback={<pre>{JSON.stringify(props.data)}</pre>}>
+            <Match when={getWhenType(data(), "urlencoded")}>
+              {(data) => <ShowUrlEncoded data={data()} />}
+            </Match>
+            <Match when={getWhenType(data(), "rfc3986uri")}>
+              {(data) => <ShowRFC3986IROEncoded data={data()} />}
+            </Match>
+            <Match when={getWhenType(data(), "base64url")}>
+              {(data) => <ShowBase64Encoded data={data()} />}
+            </Match>
+            <Match when={getWhenType(data(), "json")}>
+              {(data) => <ShowJson data={data()} />}
+            </Match>
+            <Match when={getWhenType(data(), "jwt")}>
+              {(data) => <ShowJWT data={data()} />}
+            </Match>
+            <Match when={getWhenType(data(), "pair")}>
+              {(data) => <ShowPair data={data()} />}
+            </Match>
+            <Match when={getWhenType(data(), "array")}>
+              {(data) => <ShowArray data={data()} />}
+            </Match>
+          </Switch>
+        )}
+      </Match>
+    </Switch>
+  )
 }
 
 const ShowUrl: Component<{ url: Url }> = (props) => {
