@@ -163,11 +163,11 @@ const ShowJWT: Component<{ data: JWT }> = (props) => {
 }
 
 const ShowData: Component<{ data: Data }> = (props) => {
-  function notString<T>(x: T): Exclude<T, string> | undefined {
+  function getNonString<T>(x: T): Exclude<T, string> | undefined {
     if (typeof x !== "string") return x as Exclude<T, string>
   }
 
-  function isOfType<T extends { _type: string }, K extends T["_type"]>(
+  function getWhenType<T extends { _type: string }, K extends T["_type"]>(
     x: T,
     k: K
   ): Extract<T, { _type: K }> | undefined {
@@ -179,28 +179,28 @@ const ShowData: Component<{ data: Data }> = (props) => {
       <Match when={typeof props.data === "string"}>
         {<span>{props.data as string}</span>}
       </Match>
-      <Match when={notString(props.data)}>
+      <Match when={getNonString(props.data)}>
         {(data) => (
           <Switch fallback={<pre>{JSON.stringify(props.data)}</pre>}>
-            <Match when={isOfType(data(), "urlencoded")}>
+            <Match when={getWhenType(data(), "urlencoded")}>
               {(data) => <ShowUrlEncoded data={data()} />}
             </Match>
-            <Match when={isOfType(data(), "rfc3986uri")}>
+            <Match when={getWhenType(data(), "rfc3986uri")}>
               {(data) => <ShowRFC3986IROEncoded data={data()} />}
             </Match>
-            <Match when={isOfType(data(), "base64url")}>
+            <Match when={getWhenType(data(), "base64url")}>
               {(data) => <ShowBase64Encoded data={data()} />}
             </Match>
-            <Match when={isOfType(data(), "json")}>
+            <Match when={getWhenType(data(), "json")}>
               {(data) => <ShowJson data={data()} />}
             </Match>
-            <Match when={isOfType(data(), "jwt")}>
+            <Match when={getWhenType(data(), "jwt")}>
               {(data) => <ShowJWT data={data()} />}
             </Match>
-            <Match when={isOfType(data(), "pair")}>
+            <Match when={getWhenType(data(), "pair")}>
               {(data) => <ShowPair data={data()} />}
             </Match>
-            <Match when={isOfType(data(), "array")}>
+            <Match when={getWhenType(data(), "array")}>
               {(data) => <ShowArray data={data()} />}
             </Match>
           </Switch>
