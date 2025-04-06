@@ -2,14 +2,19 @@ export interface Url {
   protocol: Protocol
   host: HostPart[]
   path: PathPart[]
-  query: QueryPart
-  hash: string
+  query?: QueryPart
+  hash?: string
 }
 
 export type Protocol = string
 
 export type Primitive = string | KeyValuePair
-export type Encoding = Base64UrlEncoded | UrlEncoded | Json | JWT
+export type Encoding =
+  | Base64UrlEncoded
+  | UrlEncoded
+  | Json
+  | JWT
+  | RFC3986URIEncoded
 export type Data = Primitive | Encoding | AndDelimited
 
 export interface Base64UrlEncoded {
@@ -20,6 +25,12 @@ export interface Base64UrlEncoded {
 
 export interface UrlEncoded {
   _type: "urlencoded"
+  raw: string
+  data: Data
+}
+
+export interface RFC3986URIEncoded {
+  _type: "rfc3986uri"
   raw: string
   data: Data
 }
@@ -61,20 +72,74 @@ export type HostPart = Part<"host">
 export type PathPart = Part<"path">
 export type QueryPart = Part<"query">
 
+function extractUrlHash(url: string): string | undefined {
+  const hashIndex = url.indexOf("#")
+  if (hashIndex === -1) return undefined
+  return url.slice(hashIndex + 1)
+}
+
+
 export function dissectUrl(url: string): Url {
   const urlObj = new URL(url)
   const protocol = urlObj.protocol.slice(0, -1) // Remove the trailing ":"
   const host = hostParts(urlObj.host)
   const path = pathParts(urlObj.pathname)
-  const query = queryParts(urlObj.search.slice(1)) // Remove the leading "?"
-  const hash = urlObj.hash.slice(1) // Remove the leading "#"
+  const query = url.includes("?")
+    ? queryParts(urlObj.search.slice(1))
+    : undefined
+  const hash = extractUrlHash(url)
 
   return {
     protocol,
     host,
     path,
-    query,
-    hash,
+    ...(hash !== undefined ? { hash } : {}),
+    ...(query !== undefined ? { query } : {}),
+  }
+}
+
+function base64URLencode(str: string): string {
+  const utf8Arr = new TextEncoder().encode(str)
+  const base64Encoded = btoa(utf8Arr as any as string)
+  return base64Encoded
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "")
+}
+
+export function assembleUrl(url: Url): string {
+  const protocol = url.protocol + ":"
+  const host = url.host.map((part) => part.data).join(".")
+  const path = url.path.map((part) => encode(part.data)).join("/")
+  const query = url.query !== undefined ? "?" + encode(url.query.data) : ""
+  const hash = url.hash !== undefined ? "#" + encode(url.hash) : ""
+
+  return `${protocol}//${host}/${path}${query}${hash}`
+}
+
+function encode(data: Data): string {
+  if (typeof data === "string") return data
+  switch (data._type) {
+    case "urlencoded":
+      return encodeURIComponent(encode(data.data))
+    case "rfc3986uri":
+      return encodeRFC3986URIComponent(encode(data.data))
+    case "base64url":
+      return base64URLencode(encode(data.data))
+    case "json":
+      return JSON.stringify(data.data)
+    case "jwt":
+      return (
+        base64URLencode(JSON.stringify(data.data.header)) +
+        "." +
+        base64URLencode(JSON.stringify(data.data.payload)) +
+        "." +
+        data.data.signature
+      )
+    case "pair":
+      return `${encode(data.key)}=${encode(data.value)}`
+    case "array":
+      return data.contents.map(encode).join("&")
   }
 }
 
@@ -125,6 +190,7 @@ function hostParts(host: string): HostPart[] {
 
 const allEncodings = [
   identifyBase64UrlEncoded,
+  identifyRFC3986URIEncoded,
   identifyUrlEncoded,
   identifyJson,
   identifyJWT,
@@ -169,6 +235,27 @@ function identifyUrlEncoded(string: string): UrlEncoded | undefined {
   if (decoded !== string) {
     return {
       _type: "urlencoded",
+      raw: string,
+      data: decoded,
+    }
+  }
+}
+
+function encodeRFC3986URIComponent(str: string) {
+  return encodeURIComponent(str).replace(
+    /[!'()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+  )
+}
+
+function identifyRFC3986URIEncoded(
+  string: string
+): RFC3986URIEncoded | undefined {
+  // TODO:
+  const decoded = decodeURIComponent(string)
+  if (decoded !== string) {
+    return {
+      _type: "rfc3986uri",
       raw: string,
       data: decoded,
     }

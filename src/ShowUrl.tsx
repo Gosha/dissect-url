@@ -10,6 +10,7 @@ import {
   Part,
   Url,
   UrlEncoded,
+  RFC3986URIEncoded,
 } from "./dissect-url"
 
 export const DissectURL: Component<{ url: Accessor<string> }> = (props) => {
@@ -35,10 +36,10 @@ const Static: Component<{ children: JSX.Element }> = (props) => {
   return <div class="m-1 text-gray-500">{props.children}</div>
 }
 
-const ShowPart: Component<{ part: Part<any> }> = (props) => {
+const ShowPart: Component<{ part?: Part<any> }> = (props) => {
   return (
     <div class="m-1">
-      <ShowData data={props.part.data} />
+      <Show when={props.part}>{(part) => <ShowData data={part().data} />}</Show>
     </div>
   )
 }
@@ -47,6 +48,17 @@ const ShowUrlEncoded: Component<{ data: UrlEncoded }> = (props) => {
   return (
     <span>
       urlencode(
+      <ShowData data={props.data.data} />)
+    </span>
+  )
+}
+
+const ShowRFC3986IROEncoded: Component<{ data: RFC3986URIEncoded }> = (
+  props
+) => {
+  return (
+    <span>
+      encodeRFC3986(
       <ShowData data={props.data.data} />)
     </span>
   )
@@ -133,6 +145,8 @@ const ShowData: Component<{ data: Data }> = (props) => {
   switch (props.data._type) {
     case "urlencoded":
       return <ShowUrlEncoded data={props.data} />
+    case "rfc3986uri":
+      return <ShowRFC3986IROEncoded data={props.data} />
     case "base64url":
       return <ShowBase64Encoded data={props.data} />
     case "json":
@@ -149,15 +163,21 @@ const ShowData: Component<{ data: Data }> = (props) => {
 }
 
 const ShowUrl: Component<{ url: Url }> = (props) => {
+  const protocol = () => props.url.protocol
+  const host = () => props.url.host
+  const path = () => props.url.path
+  const query = () => props.url.query
+  const hash = () => props.url.hash
+
   return (
     <>
       <div class="flex">
-        <Static>{props.url.protocol}://</Static>
-        <For each={props.url.host}>
+        <Static>{protocol()}://</Static>
+        <For each={host()}>
           {(item, index) => (
             <>
               <ShowPart part={item} />
-              <Show when={index() !== props.url.host.length - 1}>
+              <Show when={index() !== host().length - 1}>
                 <Static>.</Static>
               </Show>
             </>
@@ -167,11 +187,11 @@ const ShowUrl: Component<{ url: Url }> = (props) => {
 
       <div class="ml-5 flex flex-wrap">
         <Static>/</Static>
-        <For each={props.url.path}>
+        <For each={path()}>
           {(item, index) => (
             <>
               <ShowPart part={item} />
-              <Show when={index() !== props.url.path.length - 1}>
+              <Show when={index() !== path().length - 1}>
                 <Static>/</Static>
               </Show>
             </>
@@ -179,13 +199,22 @@ const ShowUrl: Component<{ url: Url }> = (props) => {
         </For>
       </div>
 
-      <Show when={props.url.query}>
-        {(query) => (
-          <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
-            <ShowPart part={query()} />
-          </div>
-        )}
-      </Show>
+      <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
+        <ShowPart part={query()} />
+      </div>
+
+      <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
+        <Show when={hash()}>
+          {(hash) => (
+            <div class="flex">
+              <Static>#</Static>
+              <div class="m-1">
+                <ShowData data={hash()} />
+              </div>
+            </div>
+          )}
+        </Show>
+      </div>
     </>
   )
 }
