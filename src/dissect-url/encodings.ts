@@ -31,13 +31,18 @@ export interface Encoder<E extends Encoding<unknown, unknown>> {
 
 const urlEncoder: Encoder<UrlEncoded> = {
   identify(string) {
-    const decoded = decodeURIComponent(string)
-    if (decoded !== string) {
-      return {
-        _type: "urlencoded",
-        raw: string,
-        data: decoded,
+    try {
+      const decoded = decodeURIComponent(string)
+      if (decoded !== string) {
+        return {
+          _type: "urlencoded",
+          raw: string,
+          data: decoded,
+        }
       }
+    } catch (e) {
+      if (e instanceof Error && e.name == "URIError") return
+      else throw e
     }
   },
   encode(data) {
@@ -65,13 +70,18 @@ const rfc3986uriEncoder: Encoder<RFC3986URIEncoded> = {
     )
       return
 
-    const decoded = decodeURIComponent(string)
-    if (decoded !== string) {
-      return {
-        _type: "rfc3986uri",
-        raw: string,
-        data: decoded,
+    try {
+      const decoded = decodeURIComponent(string)
+      if (decoded !== string) {
+        return {
+          _type: "rfc3986uri",
+          raw: string,
+          data: decoded,
+        }
       }
+    } catch (e) {
+      if (e instanceof Error && e.name == "URIError") return
+      else throw e
     }
   },
   encode(data) {

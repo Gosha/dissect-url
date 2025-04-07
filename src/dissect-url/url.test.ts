@@ -123,6 +123,16 @@ testReassemble("Reassemble spaced hash", () => {
   })
 }
 
+testReassemble("Reassemble broken url encoding", () => {
+  const url = "https://example.com/path/%B"
+  assert.equal(assembleUrl(dissectUrl(url)), url)
+})
+
+testReassemble("Reassemble broken RFC3986 url encoding", () => {
+  const url = "https://example.com/path/%B"
+  assert.equal(assembleUrl(dissectUrl(url)), url)
+})
+
 {
   const url =
     "https://example.com/Hello%20World%20%21%3F%5B%5D?Hello%20World%20%21%3F%5B%5D=Hello%20World%20%21%3F%5B%5D"
