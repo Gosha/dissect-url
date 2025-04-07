@@ -61,6 +61,11 @@ testReassemble("Reassemble spaced hash", () => {
   assert.equal(assembleUrl(dissectUrl(url)), url)
 })
 
+testReassemble("Double encoded URL", () => {
+  const url = "https://auth.services.wasakredit.se/Account/BankId?returnUrl=%2Fconnect%2Fauthorize%2Fcallback%3Fresponse_type%3Dcode%26client_id%3Dwk_minasidor%26scope%3Dopenid%2Boffline_access%26redirect_uri%3Dhttps%253a%252f%252fminasidor.wasakredit.se%252finloggning%252fcallback%26state%3De7129877ba924773a9eec92f5fbf571b%26nonce%3D3289c6d841a04c789248cf0d567b4dcb"
+  assert.equal(assembleUrl(dissectUrl(url)), url)
+})
+
 {
   const url =
     "https://example.com/path/to-resource?query=param&key=value#hashvalue"

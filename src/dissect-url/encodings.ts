@@ -33,7 +33,7 @@ const urlEncoder: Encoder<UrlEncoded> = {
   identify(string) {
     try {
       const decoded = decodeURIComponent(string)
-      if (decoded !== string) {
+      if (decoded !== string && encodeURIComponent(decoded) === string) {
         return {
           _type: "urlencoded",
           raw: string,
@@ -72,7 +72,7 @@ const rfc3986uriEncoder: Encoder<RFC3986URIEncoded> = {
 
     try {
       const decoded = decodeURIComponent(string)
-      if (decoded !== string) {
+      if (decoded !== string && string === encodeRFC3986URIComponent(decoded)) {
         return {
           _type: "rfc3986uri",
           raw: string,
