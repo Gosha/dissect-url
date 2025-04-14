@@ -15,11 +15,13 @@
   "dependencies": {
     "@bigmistqke/solid-contenteditable": "^0.0.11",
     "@unocss/reset": "^66.0.0",
+    "d3-scale-chromatic": "^3.1.0",
     "solid-js": "^1.9.5",
     "typescript": "^5.8.2",
     "uvu": "^0.5.6"
   },
   "devDependencies": {
+    "@types/d3-scale-chromatic": "^3.1.0",
     "@unocss/preset-icons": "^66.0.0",
     "@unocss/preset-wind3": "^66.0.0",
     "@unocss/vite": "^66.0.0",

@@ -21,6 +21,7 @@ import {
   UrlEncoded,
   RFC3986URIEncoded,
 } from "./dissect-url"
+import { interpolateYlGnBu } from "d3-scale-chromatic"
 
 export const DissectURL: Component<{ url: Accessor<string> }> = (props) => {
   const dissectedUrl = () => dissectUrl(props.url())
@@ -217,9 +218,19 @@ const ShowUrl: Component<{ url: Url }> = (props) => {
   const query = () => props.url.query
   const hash = () => props.url.hash
 
+  const classes = {
+    section: "flex mb-2 p-1",
+  }
+
+  const borderStyle = (index: number, total: number) => ({
+    "border-left": `5px solid ${interpolateYlGnBu(index / (total - 1))}`,
+  })
+
+  const totalSections = 4 // Number of sections to color
+
   return (
     <>
-      <div class="flex">
+      <div class={classes.section} style={borderStyle(0, totalSections)}>
         <Static>{protocol()}://</Static>
         <For each={host()}>
           {(item, index) => (
@@ -233,7 +244,10 @@ const ShowUrl: Component<{ url: Url }> = (props) => {
         </For>
       </div>
 
-      <div class="ml-5 flex flex-wrap">
+      <div
+        class={classes.section + " ml-5 flex flex-wrap"}
+        style={borderStyle(1, totalSections)}
+      >
         <Static>/</Static>
         <For each={path()}>
           {(item, index) => (
@@ -247,11 +261,23 @@ const ShowUrl: Component<{ url: Url }> = (props) => {
         </For>
       </div>
 
-      <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
+      <div
+        class={classes.section + " ml-5 flex flex-wrap flex-col"}
+        style={{
+          ...borderStyle(2, totalSections),
+          "word-break": "break-all",
+        }}
+      >
         <ShowPart part={query()} />
       </div>
 
-      <div class="ml-5 flex flex-col" style={{ "word-break": "break-all" }}>
+      <div
+        class={classes.section + " ml-5 flex flex-wrap flex-col"}
+        style={{
+          ...borderStyle(3, totalSections),
+          "word-break": "break-all",
+        }}
+      >
         <Show when={hash()}>
           {(hash) => (
             <div class="flex">
