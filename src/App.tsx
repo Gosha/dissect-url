@@ -31,7 +31,8 @@ const App: Component = () => {
             class="text-left font-mono m-5 text-sm border-1 p-2"
             style={{
               "word-break": "break-all",
-              ...{ // Workaround for missing CSS property
+              ...{
+                // Workaround for missing CSS property
                 "text-wrap-mode": "wrap",
               },
             }}
